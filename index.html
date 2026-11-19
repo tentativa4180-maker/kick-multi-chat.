@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101310"><link rel="manifest" href="manifest.webmanifest">
+<title>Kick Multi Chat</title>
+<style>
+:root{--bg:#0b0e0c;--panel:#151a16;--panel2:#1b211c;--line:#2a332c;--green:#53fc18;--muted:#9ba79d;--text:#f1f5f2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#19231a 0,#0b0e0c 55%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh;padding:0 0 calc(88px + env(safe-area-inset-bottom))}
+header{padding:25px 18px 12px;display:flex;align-items:center;justify-content:space-between;max-width:760px;margin:auto}
+.brand{display:flex;gap:11px;align-items:center}.logo{width:42px;height:42px;border-radius:14px;background:var(--green);color:#071006;display:grid;place-items:center;font-weight:1000;font-size:23px;box-shadow:0 0 24px #53fc1830}
+h1{font-size:19px;margin:0} .sub{color:var(--muted);font-size:12px;margin-top:3px}
+button{border:0;border-radius:12px;background:var(--green);color:#091008;font-weight:800;padding:12px 14px;cursor:pointer;font-size:14px}
+button.secondary{background:#252c26;color:var(--text);border:1px solid var(--line)}button.danger{background:#332020;color:#ffb4b4;border:1px solid #563333}
+main{max-width:760px;margin:auto;padding:8px 16px}
+.page{display:none}.page.active{display:block}
+.hero{border:1px solid #344035;background:linear-gradient(135deg,#18241a,#111512);padding:18px;border-radius:20px;box-shadow:0 12px 34px #0003}
+.hero h2{margin:0 0 5px;font-size:21px}.hero p{color:var(--muted);margin:0 0 14px;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:13px 0}
+.stat{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:16px}.stat strong{font-size:22px;display:block;color:var(--green)}.stat span{font-size:12px;color:var(--muted)}
+.sectionhead{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 10px}.sectionhead h3{margin:0;font-size:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:14px;margin:10px 0}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+input,textarea{width:100%;background:#0e120f;color:var(--text);border:1px solid #303a32;border-radius:12px;padding:12px;font:inherit;outline:none}
+input:focus,textarea:focus{border-color:var(--green)}textarea{min-height:84px;resize:vertical}
+label{display:block;color:var(--muted);font-size:12px;margin:9px 0 6px}
+.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.row button{white-space:nowrap}
+.channel{display:flex;align-items:center;justify-content:space-between;gap:12px}.channel .name{font-weight:800}.channel small{color:var(--muted)}
+.msg{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.msg:first-child{border:0;padding-top:0;margin-top:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{padding:10px 12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#101411ed;backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:5px;z-index:5}
+nav button{background:transparent;color:var(--muted);padding:10px 12px;flex:1;max-width:150px;font-size:12px}nav button.active{color:var(--green);background:#1c281e}
+nav button .ico{display:block;font-size:18px;margin-bottom:2px}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#273328;border:1px solid #435a45;padding:10px 15px;border-radius:12px;display:none;z-index:9}
+@media(min-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head><body>
+<header><div class="brand"><div class="logo">K</div><div><h1>Kick Multi Chat</h1><div class="sub">Sua central de canais e mensagens</div></div></div><button id="installBtn" class="secondary" style="display:none">Instalar</button></header>
+<main>
+<section class="page active" id="home">
+<div class="hero"><h2>Olá! 👋</h2><p>Organize seus canais da Kick e deixe mensagens prontas para copiar e revisar.</p><button onclick="go('channels')">＋ Gerenciar canais</button></div>
+<div class="stats"><div class="stat"><strong id="channelCount">0</strong><span>Canais salvos</span></div><div class="stat"><strong id="draftCount">0</strong><span>Mensagens preparadas</span></div></div>
+<div class="sectionhead"><h3>Seus canais</h3><button class="secondary" onclick="go('channels')">Ver todos</button></div><div id="homeChannels"></div>
+<div class="card"><b>💡 Como usar</b><p class="sub">Adicione um canal, escreva seus rascunhos, copie uma mensagem quando quiser e abra a live. Você revisa e envia manualmente no chat.</p></div>
+</section>
+<section class="page" id="channels"><div class="sectionhead"><h3>Gerenciar canais</h3></div>
+<div class="card"><label>Nome ou URL do canal</label><div class="row"><input id="channelInput" placeholder="ex.: kick.com/canal"><button onclick="addChannel()">Adicionar</button></div></div><div id="channelsList"></div></section>
+<section class="page" id="messages"><div class="sectionhead"><h3>Mensagens / rascunhos</h3></div><div class="card"><label>Canal (opcional)</label><select id="draftChannel" style="width:100%;padding:12px;border-radius:12px;background:#0e120f;color:white;border:1px solid #303a32"></select><label>Mensagem</label><textarea id="draftText" placeholder="Escreva e salve uma mensagem..."></textarea><div class="actions"><button onclick="addDraft()">Salvar rascunho</button></div></div><div id="draftList"></div></section>
+<section class="page" id="settings"><div class="sectionhead"><h3>Configurações</h3></div><div class="card"><p class="sub">Os dados ficam salvos localmente neste navegador.</p><div class="actions"><button class="secondary" onclick="exportData()">Exportar backup</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importar backup</button><input id="importFile" type="file" accept="application/json" style="display:none" onchange="importData(event)"><button class="danger" onclick="clearData()">Apagar dados locais</button></div></div><div class="card"><b>Sobre</b><p class="sub">Kick Multi Chat Web · PWA experimental. O app não envia mensagens automaticamente.</p></div></section>
+</main>
+<nav><button class="active" data-page="home" onclick="go('home')"><span class="ico">⌂</span>Início</button><button data-page="channels" onclick="go('channels')"><span class="ico">▣</span>Canais</button><button data-page="messages" onclick="go('messages')"><span class="ico">✎</span>Mensagens</button><button data-page="settings" onclick="go('settings')"><span class="ico">⚙</span>Ajustes</button></nav><div id="toast"></div>
+<script>
+let data=JSON.parse(localStorage.getItem('kickmultiweb')||'{"channels":[],"drafts":[]}');
+function save(){localStorage.setItem('kickmultiweb',JSON.stringify(data));render()}
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));render()}
+function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
+function slug(s){return s.trim().replace(/^https?:\/\/(www\.)?kick\.com\//i,'').replace(/^@/,'').replace(/[\/?#].*$/,'').toLowerCase()}
+function addChannel(){let s=slug(document.getElementById('channelInput').value);if(!s)return;if(data.channels.some(c=>c.slug===s)){toast('Canal já está salvo');return}data.channels.push({slug:s});document.getElementById('channelInput').value='';save();toast('Canal adicionado')}
+function removeChannel(i){if(confirm('Remover este canal?')){data.channels.splice(i,1);save()}}
+function addDraft(){let text=document.getElementById('draftText').value.trim();if(!text){toast('Digite uma mensagem primeiro');return}let channel=document.getElementById('draftChannel').value;data.drafts.push({text,channel,created:Date.now()});document.getElementById('draftText').value='';save();toast('Rascunho salvo')}
+async function copyText(i){try{await navigator.clipboard.writeText(data.drafts[i].text);toast('Copiado para a área de transferência')}catch(e){toast('Seu navegador não permitiu copiar. Selecione o texto manualmente.')}}
+function openChannel(s){window.open('https://kick.com/'+encodeURIComponent(s),'_blank','noopener')}
+function exportData(){let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kick-multi-chat-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.channels)||!Array.isArray(x.drafts))throw 0;data=x;save();toast('Backup importado')}catch(_){toast('Arquivo de backup inválido')}};r.readAsText(f)}
+function clearData(){if(confirm('Apagar todos os canais e rascunhos deste navegador?')){data={channels:[],drafts:[]};save();toast('Dados apagados')}}
+function render(){document.getElementById('channelCount').textContent=data.channels.length;document.getElementById('draftCount').textContent=data.drafts.length;
+let home=document.getElementById('homeChannels');home.innerHTML=data.channels.length?data.channels.slice(0,5).map(c=>`<div class="card channel"><div><div class="name">${esc(c.slug)}</div><small>kick.com/${esc(c.slug)}</small></div><button class="secondary" onclick="openChannel('${esc(c.slug)}')">Abrir live</button></div>`).join(''):'<div class="card empty">Nenhum canal adicionado ainda.</div>';
+document.getElementById('channelsList').innerHTML=data.channels.length?data.channels.map((c,i)=>`<div class="card channel"><div><div class="name">${esc(c.slug)}</div><small>kick.com/${esc(c.slug)}</small></div><div class="actions"><button class="secondary" onclick="openChannel('${esc(c.slug)}')">Abrir</button><button class="danger" onclick="removeChannel(${i})">Excluir</button></div></div>`).join(''):'<div class="card empty">Adicione seu primeiro canal acima.</div>';
+let sel=document.getElementById('draftChannel');let prev=sel.value;sel.innerHTML='<option value="">Sem canal específico</option>'+data.channels.map(c=>`<option value="${esc(c.slug)}">${esc(c.slug)}</option>`).join('');sel.value=data.channels.some(c=>c.slug===prev)?prev:'';
+document.getElementById('draftList').innerHTML=data.drafts.length?data.drafts.map((d,i)=>`<div class="card"><div class="sub">${d.channel?('Canal: '+esc(d.channel)):'Rascunho geral'}</div><p style="white-space:pre-wrap;word-break:break-word">${esc(d.text)}</p><div class="actions"><button onclick="copyText(${i})">Copiar</button>${d.channel?`<button class="secondary" onclick="openChannel('${esc(d.channel)}')">Abrir canal</button>`:''}<button class="danger" onclick="deleteDraft(${i})">Excluir</button></div></div>`).join(''):'<div class="card empty">Nenhum rascunho salvo.</div>'}
+}
+function deleteDraft(i){data.drafts.splice(i,1);save()}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+render();
+let deferredInstall;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.getElementById('installBtn').style.display='block'});
+document.getElementById('installBtn').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();deferredInstall=null}};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>

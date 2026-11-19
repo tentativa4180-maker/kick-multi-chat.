@@ -1,0 +1,21 @@
+{
+  "name": "Kick Multi Chat",
+  "short_name": "Kick Multi Chat",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0e0c",
+  "theme_color": "#53fc18",
+  "description": "Organizador de canais e rascunhos para Kick",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
